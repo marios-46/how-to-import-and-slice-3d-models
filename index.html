@@ -1,0 +1,1641 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>How to Import and Slice 3D Models in Orca Slicer</title>
+
+  <meta name="description" content="Learn how to import 3D models into Orca Slicer, adjust print settings, inspect layer previews, troubleshoot errors, and export G-code.">
+  <meta name="keywords" content="import models in Orca Slicer, slice 3D models, Orca Slicer tutorial, 3D printing, G-code, STL, 3MF, 3D printer settings">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="3D Printing Learning Hub">
+  <meta name="theme-color" content="#11152b">
+
+  <style>
+    :root {
+      --background: #f4f5fb;
+      --surface: #ffffff;
+      --ink: #1a2038;
+      --muted: #626a83;
+      --navy: #11152b;
+      --navy-light: #202747;
+      --violet: #7857ff;
+      --cyan: #42d9e8;
+      --line: #e3e6f1;
+      --soft-violet: #f0edff;
+      --soft-cyan: #e8fbfd;
+      --success: #167c61;
+      --radius: 18px;
+      --shadow: 0 14px 45px rgba(28, 35, 72, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 24px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    a {
+      color: #6044e8;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+      overflow-wrap: anywhere;
+    }
+
+    a:hover {
+      color: #3321a6;
+    }
+
+    .site-shell {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      background: var(--navy);
+      color: #e9ecff;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+
+    .topbar-inner {
+      min-height: 68px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .brand span {
+      color: var(--cyan);
+    }
+
+    .topbar-note {
+      font-size: 12px;
+      color: #c3cae6;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 82px 0 74px;
+      color: #ffffff;
+      background:
+        radial-gradient(circle at 84% 16%, rgba(66,217,232,.23), transparent 27%),
+        radial-gradient(circle at 10% 90%, rgba(120,87,255,.30), transparent 34%),
+        linear-gradient(135deg, #11152b 0%, #1c2445 60%, #282054 100%);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 390px;
+      height: 390px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 50%;
+      right: -130px;
+      bottom: -220px;
+      box-shadow:
+        0 0 0 35px rgba(255,255,255,.025),
+        0 0 0 75px rgba(255,255,255,.02);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 850px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 13px;
+      border: 1px solid rgba(66,217,232,.38);
+      border-radius: 999px;
+      background: rgba(66,217,232,.08);
+      color: #8af1f7;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 12px rgba(66,217,232,.8);
+    }
+
+    h1 {
+      max-width: 830px;
+      margin: 24px 0 18px;
+      font-size: clamp(34px, 5.4vw, 60px);
+      line-height: 1.12;
+      letter-spacing: -.045em;
+    }
+
+    .hero p {
+      max-width: 740px;
+      margin: 0;
+      color: #d5daf0;
+      font-size: clamp(16px, 2vw, 19px);
+      line-height: 1.85;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .hero-meta span {
+      padding: 8px 12px;
+      border-radius: 9px;
+      background: rgba(255,255,255,.08);
+      color: #f1f3ff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .page-content {
+      padding: 44px 0 64px;
+    }
+
+    .intro-panel {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 28px;
+      align-items: center;
+      padding: 30px;
+      margin-bottom: 32px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .intro-panel h2 {
+      margin-top: 0;
+    }
+
+    .intro-panel p:last-child {
+      margin-bottom: 0;
+    }
+
+    .quick-card {
+      padding: 22px;
+      background: linear-gradient(145deg, var(--soft-violet), var(--soft-cyan));
+      border-radius: 15px;
+    }
+
+    .quick-card strong {
+      display: block;
+      margin-bottom: 12px;
+      color: #30256f;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .quick-card ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .quick-card li {
+      margin: 5px 0;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .content-layout {
+      display: block;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .toc {
+      padding: 24px 26px;
+      margin: 0 0 38px;
+      background: var(--navy);
+      color: #ffffff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .toc h2 {
+      margin: 0 0 13px;
+      color: #ffffff;
+      font-size: 21px;
+    }
+
+    .toc ol {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px 24px;
+      padding-left: 22px;
+      margin: 0;
+    }
+
+    .toc li {
+      padding: 2px 0;
+      color: #bfc8e8;
+      font-size: 14px;
+    }
+
+    .toc a {
+      color: #dfe5ff;
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      color: var(--cyan);
+      text-decoration: underline;
+    }
+
+    .article-section {
+      padding: 30px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 7px 25px rgba(28,35,72,.035);
+    }
+
+    .section-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      height: 36px;
+      margin-bottom: 12px;
+      border-radius: 11px;
+      background: var(--soft-violet);
+      color: #6145df;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    h2 {
+      margin: 4px 0 18px;
+      font-size: clamp(24px, 3vw, 33px);
+      line-height: 1.25;
+      letter-spacing: -.025em;
+    }
+
+    h3 {
+      margin: 27px 0 10px;
+      font-size: 20px;
+      line-height: 1.4;
+    }
+
+    p {
+      margin: 0 0 17px;
+    }
+
+    .article-section > :last-child,
+    .article-section div > :last-child {
+      margin-bottom: 0;
+    }
+
+    .callout {
+      padding: 18px 20px;
+      margin: 22px 0;
+      border-left: 4px solid var(--violet);
+      border-radius: 0 12px 12px 0;
+      background: var(--soft-violet);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #392a91;
+    }
+
+    .info-callout {
+      border-left-color: #1ebdcb;
+      background: var(--soft-cyan);
+    }
+
+    .info-callout strong {
+      color: #075f6a;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 22px 0;
+    }
+
+    .step-card {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfcff;
+    }
+
+    .step-card .step-label {
+      display: inline-block;
+      margin-bottom: 9px;
+      color: #6849ed;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .step-card h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .step-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .table-wrap {
+      width: 100%;
+      margin: 22px 0;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 550px;
+      border-collapse: collapse;
+      background: #ffffff;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #202747;
+      color: #ffffff;
+      font-weight: 750;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f8f9ff;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    ul, ol {
+      padding-left: 24px;
+      margin: 12px 0 20px;
+    }
+
+    li {
+      margin: 7px 0;
+    }
+
+    .checklist {
+      padding: 0;
+      list-style: none;
+    }
+
+    .checklist li {
+      position: relative;
+      padding-left: 31px;
+      margin: 12px 0;
+    }
+
+    .checklist li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 21px;
+      height: 21px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      background: #dcf8ed;
+      color: var(--success);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .mini-banner {
+      padding: 25px;
+      margin: 24px 0;
+      border-radius: 16px;
+      background: linear-gradient(120deg, #202747, #43317c);
+      color: #ffffff;
+    }
+
+    .mini-banner h3 {
+      margin-top: 0;
+      color: #ffffff;
+    }
+
+    .mini-banner p {
+      margin-bottom: 0;
+      color: #e0e3f8;
+    }
+
+    .faq-item {
+      padding: 19px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .faq-item:first-of-type {
+      padding-top: 0;
+    }
+
+    .faq-item:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .faq-item h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .faq-item p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .closing-panel {
+      padding: 30px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, #e9e7ff, #e4fbfc);
+      border: 1px solid #d9dafa;
+    }
+
+    .closing-panel h2 {
+      margin-top: 0;
+    }
+
+    .site-footer {
+      padding: 32px 0;
+      background: var(--navy);
+      color: #c5cce7;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .footer-inner p {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .footer-brand {
+      color: #ffffff;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    @media (max-width: 760px) {
+      .hero {
+        padding: 58px 0 54px;
+      }
+
+      .intro-panel {
+        grid-template-columns: 1fr;
+        padding: 22px;
+      }
+
+      .toc ol {
+        grid-template-columns: 1fr;
+      }
+
+      .article-section {
+        padding: 23px 20px;
+      }
+
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar-note {
+        display: none;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .site-shell {
+        width: min(100% - 24px, 1120px);
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .hero-meta span {
+        font-size: 11px;
+      }
+
+      .toc {
+        padding: 20px;
+      }
+
+      .article-section,
+      .closing-panel {
+        padding: 20px 16px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="site-shell topbar-inner">
+      <div class="brand">PRINT<span>LAB</span> / LEARNING HUB</div>
+      <div class="topbar-note">Practical 3D Printing Guides</div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="site-shell hero-content">
+      <div class="eyebrow">Step-by-step tutorial</div>
+
+      <h1>How to Import and Slice 3D Models in Orca Slicer</h1>
+
+      <p>
+        Learn how to load a 3D model, position it on the build plate, choose
+        suitable print settings, inspect layer previews, and export a file
+        your 3D printer can use. This practical guide explains each stage
+        without assuming advanced 3D printing experience.
+      </p>
+
+      <div class="hero-meta">
+        <span>Beginner Friendly</span>
+        <span>Model Preparation</span>
+        <span>Slicing Workflow</span>
+        <span>Print Quality</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="page-content">
+    <div class="site-shell">
+
+      <section class="intro-panel">
+        <div>
+          <h2>From a 3D Model to Printable Instructions</h2>
+
+          <p>
+            A 3D model contains the shape and dimensions of an object, but a
+            typical FDM printer needs instructions describing how to build
+            that object layer by layer. A slicer converts the model into
+            those instructions and helps you estimate material use and
+            printing time before starting a job.
+          </p>
+
+          <p>
+            <a href="https://orcasslicer.com/" target="_blank" rel="noopener noreferrer">https://orcasslicer.com/</a>
+            is a starting point for exploring Orca Slicer and its
+            3D-printing workflow. Once the software is installed and your
+            printer profile is configured, you can prepare a model and
+            generate a sliced file.
+          </p>
+        </div>
+
+        <div class="quick-card">
+          <strong>What you will learn</strong>
+          <ul>
+            <li>Which model formats to use</li>
+            <li>How to import and position a model</li>
+            <li>How to choose basic print settings</li>
+            <li>How to check supports and toolpaths</li>
+            <li>How to export and verify the result</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="content-layout">
+
+        <nav class="toc" aria-label="Table of contents">
+          <h2>In This Guide</h2>
+          <ol>
+            <li><a href="#basics">Understand the slicing process</a></li>
+            <li><a href="#formats">Choose a compatible model file</a></li>
+            <li><a href="#prepare">Prepare the project</a></li>
+            <li><a href="#import">Import your 3D model</a></li>
+            <li><a href="#position">Position and orient the model</a></li>
+            <li><a href="#settings">Configure print settings</a></li>
+            <li><a href="#supports">Understand supports and adhesion</a></li>
+            <li><a href="#slice">Slice and inspect the preview</a></li>
+            <li><a href="#export">Export the sliced file</a></li>
+            <li><a href="#troubleshoot">Troubleshooting common issues</a></li>
+            <li><a href="#checklist">Pre-print checklist</a></li>
+            <li><a href="#faq">Frequently asked questions</a></li>
+          </ol>
+        </nav>
+
+        <article>
+
+          <section class="article-section" id="basics">
+            <span class="section-number">01</span>
+            <h2>Understand How 3D Model Slicing Works</h2>
+
+            <p>
+              Slicing is the process of dividing a three-dimensional model
+              into thin horizontal layers. The slicer calculates the paths
+              the printer nozzle will follow, including the outer walls,
+              internal infill, top and bottom surfaces, travel movements,
+              and other instructions required by the selected printer.
+            </p>
+
+            <p>
+              Orca Slicer provides a workspace for importing models,
+              selecting printer and filament profiles, adjusting process
+              settings, and previewing the resulting toolpaths. The exact
+              controls and available options can vary by software version,
+              printer profile, and installed configuration.
+            </p>
+
+            <div class="steps-grid">
+              <div class="step-card">
+                <span class="step-label">Stage 1</span>
+                <h3>Prepare the model</h3>
+                <p>
+                  Load the file, check its scale, and place it correctly on
+                  the virtual build plate.
+                </p>
+              </div>
+
+              <div class="step-card">
+                <span class="step-label">Stage 2</span>
+                <h3>Set print parameters</h3>
+                <p>
+                  Select the printer, filament, layer height, strength
+                  settings, and other appropriate options.
+                </p>
+              </div>
+
+              <div class="step-card">
+                <span class="step-label">Stage 3</span>
+                <h3>Generate toolpaths</h3>
+                <p>
+                  Run the slicing operation to calculate layers and
+                  estimate material usage and print duration.
+                </p>
+              </div>
+
+              <div class="step-card">
+                <span class="step-label">Stage 4</span>
+                <h3>Review and export</h3>
+                <p>
+                  Inspect the preview, resolve visible problems, and export
+                  the result in a format supported by your printer.
+                </p>
+              </div>
+            </div>
+
+            <p>
+              Learning these stages makes it easier to understand why a
+              model may look correct on screen but still need changes
+              before printing. A successful workflow checks both the
+              digital model and the instructions produced by the slicer.
+            </p>
+          </section>
+
+          <section class="article-section" id="formats">
+            <span class="section-number">02</span>
+            <h2>Choose the Right 3D Model File Format</h2>
+
+            <p>
+              Before importing a model, identify its file format. Different
+              formats store different types of information, and this can
+              affect how the model appears when opened. STL is common for
+              printable geometry, while 3MF can preserve additional project
+              information.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Format</th>
+                    <th>What it contains</th>
+                    <th>When to consider it</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>STL</strong></td>
+                    <td>A triangular mesh representing the object's surface.</td>
+                    <td>General-purpose printable models and broad compatibility.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>3MF</strong></td>
+                    <td>Model geometry and potentially colours, objects, and project settings.</td>
+                    <td>Projects that need to retain more information between sessions.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>OBJ</strong></td>
+                    <td>Mesh geometry and, depending on accompanying files, material or texture references.</td>
+                    <td>Models exported from many modelling applications.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>STEP</strong></td>
+                    <td>Precise CAD geometry representing designed parts.</td>
+                    <td>Mechanical components and CAD-based models.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>AMF</strong></td>
+                    <td>Geometry with support for additional manufacturing-related information.</td>
+                    <td>Projects supplied in this format by compatible software.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              STL is often a straightforward choice for a single object.
+              However, STL files do not preserve all the project information
+              that a suitable 3MF file can contain. If you receive a 3MF
+              project from another person, check its printer and material
+              settings instead of assuming they match your equipment.
+            </p>
+
+            <p>
+              OBJ files may depend on separate material or texture files.
+              Those visual materials do not necessarily translate into
+              coloured physical output on a standard single-material
+              printer. STEP imports may also require conversion into a
+              printable mesh, so the conversion quality matters for
+              detailed curved surfaces.
+            </p>
+
+            <div class="callout">
+              <strong>File-format tip</strong>
+              Use a model file from a source you trust, and check its scale
+              and geometry after import. A supported file extension does
+              not automatically guarantee that the model is ready to print.
+            </div>
+          </section>
+
+          <section class="article-section" id="prepare">
+            <span class="section-number">03</span>
+            <h2>Prepare Orca Slicer Before Importing</h2>
+
+            <p>
+              Start by opening Orca Slicer and checking that the correct
+              printer profile is selected. The profile describes important
+              hardware characteristics, such as the build volume and
+              machine behaviour. Selecting a profile for a different
+              printer can cause incorrect dimensions or unsuitable
+              machine instructions.
+            </p>
+
+            <p>
+              If this is your first time using the application, the
+              configuration process can help you choose a supported
+              printer. You may also need to select the correct nozzle
+              size, filament type, and process preset. Available options
+              depend on your printer and configuration.
+            </p>
+
+            <p>
+              If you need help understanding the initial configuration,
+              review this <a href="https://orca-slicer-setup-guide.vercel.app/" target="_blank" rel="noopener noreferrer">Orca Slicer setup guide</a>
+              before continuing. Make sure the selected profile reflects
+              your actual machine rather than choosing a profile simply
+              because its name looks similar.
+            </p>
+
+            <h3>Check these settings first</h3>
+
+            <ul class="checklist">
+              <li><strong>Printer:</strong> Select the correct model and configuration.</li>
+              <li><strong>Nozzle:</strong> Confirm the nozzle diameter installed on the printer.</li>
+              <li><strong>Filament:</strong> Select a profile appropriate for the material loaded.</li>
+              <li><strong>Process:</strong> Choose a suitable starting preset for the intended result.</li>
+              <li><strong>Build volume:</strong> Confirm the virtual plate dimensions match your machine.</li>
+            </ul>
+
+            <p>
+              You do not need to change every advanced setting before your
+              first slice. A compatible, well-maintained profile is usually
+              a better starting point than changing multiple parameters
+              without knowing what they control.
+            </p>
+          </section>
+
+          <section class="article-section" id="import">
+            <span class="section-number">04</span>
+            <h2>How to Import a 3D Model into Orca Slicer</h2>
+
+            <p>
+              Once your printer and material profiles are ready, import
+              the model into the Prepare workspace. There are several
+              common ways to do this, so use whichever method is available
+              in your version of the application.
+            </p>
+
+            <h3>Method 1: Use the File menu</h3>
+
+            <ol>
+              <li>Open Orca Slicer.</li>
+              <li>Confirm the printer profile shown in the application.</li>
+              <li>Open the <strong>File</strong> menu and choose the available import option.</li>
+              <li>Browse to the folder containing your model.</li>
+              <li>Select the supported file and confirm the import.</li>
+              <li>Wait for the model to appear on the virtual build plate.</li>
+            </ol>
+
+            <h3>Method 2: Drag and drop</h3>
+
+            <p>
+              If your version supports it, open the folder containing your
+              model and drag the file into the Orca Slicer window. This
+              method is convenient when you already know where the file
+              is saved. Follow any import prompts that appear.
+            </p>
+
+            <h3>Method 3: Use the toolbar</h3>
+
+            <p>
+              Some layouts provide an Add or import control in the
+              workspace toolbar. Select it, choose your model, and confirm
+              the operation. If the interface differs from these
+              instructions, check the menus available in your installed
+              version rather than assuming every release has identical
+              buttons.
+            </p>
+
+            <div class="callout info-callout">
+              <strong>What should you see?</strong>
+              The model should appear within the virtual build plate.
+              Depending on the source file, it may appear as one object or
+              as several separate parts. Zoom and rotate the view to check
+              its shape before making changes.
+            </div>
+
+            <h3>Importing a project is different</h3>
+
+            <p>
+              A project file can contain more than the model itself,
+              including object placement and settings. If your goal is to
+              continue work saved by another person, use the project-opening
+              workflow for the supplied project file when appropriate.
+              Importing only a model may not restore the original printing
+              setup.
+            </p>
+          </section>
+
+          <section class="article-section" id="position">
+            <span class="section-number">05</span>
+            <h2>Position, Scale, and Orient the Model</h2>
+
+            <p>
+              Importing a model is only the beginning. Before slicing,
+              check whether its dimensions and position make sense for
+              your intended print. An object can be imported successfully
+              but still be too large, incorrectly oriented, or partly
+              outside the build area.
+            </p>
+
+            <h3>Check the dimensions</h3>
+
+            <p>
+              Select the object and inspect the available size or scale
+              controls. Compare the displayed measurements with the
+              intended real-world dimensions. If the object is unexpectedly
+              tiny or enormous, check the units and scale of the source
+              model before printing.
+            </p>
+
+            <p>
+              Avoid changing dimensions casually when the part must fit
+              with other components. Even a small scaling change can
+              affect holes, slots, clearances, and mechanical connections.
+              For decorative models, resizing may be less critical, but
+              you should still verify that the new dimensions are printable.
+            </p>
+
+            <h3>Move the object onto the plate</h3>
+
+            <p>
+              The move controls let you adjust the object's position.
+              Keep the model within the usable build area and ensure that
+              its base is correctly positioned on the plate. If the model
+              contains multiple parts, check whether they overlap or are
+              spaced too closely for the intended print.
+            </p>
+
+            <h3>Choose a useful orientation</h3>
+
+            <p>
+              Orientation can influence surface finish, strength, printing
+              time, and the amount of support material required. A broad,
+              stable face on the build plate may improve adhesion, while
+              placing a visible surface against the plate can change its
+              finish.
+            </p>
+
+            <div class="steps-grid">
+              <div class="step-card">
+                <span class="step-label">For appearance</span>
+                <h3>Protect visible surfaces</h3>
+                <p>
+                  Consider which faces will show layer lines or contact
+                  the build plate.
+                </p>
+              </div>
+
+              <div class="step-card">
+                <span class="step-label">For stability</span>
+                <h3>Review the base</h3>
+                <p>
+                  Look for a practical contact area that helps the object
+                  remain attached during printing.
+                </p>
+              </div>
+
+              <div class="step-card">
+                <span class="step-label">For strength</span>
+                <h3>Consider load direction</h3>
+                <p>
+                  Layer orientation can affect how a part handles forces,
+                  especially when layers are pulled apart.
+                </p>
+              </div>
+
+              <div class="step-card">
+                <span class="step-label">For efficiency</span>
+                <h3>Reduce unnecessary supports</h3>
+                <p>
+                  Test alternative orientations when they can reduce
+                  support material without compromising quality.
+                </p>
+              </div>
+            </div>
+
+            <p>
+              Use automatic placement or orientation tools if your version
+              provides them, but inspect their results. Automated
+              positioning can be helpful, yet the best orientation depends
+              on the model's geometry and the intended purpose of the part.
+            </p>
+          </section>
+
+          <section class="article-section" id="settings">
+            <span class="section-number">06</span>
+            <h2>Configure the Main Slicing Settings</h2>
+
+            <p>
+              Print settings determine how the slicer converts the model
+              into layers and toolpaths. A sensible approach is to begin
+              with a suitable process preset and adjust only the
+              parameters relevant to your current goal.
+            </p>
+
+            <h3>Layer height</h3>
+
+            <p>
+              Layer height controls the vertical thickness of each printed
+              layer. Smaller layers can improve the appearance of curved
+              surfaces and fine vertical details, but they generally
+              increase the number of layers and may extend print time.
+              Larger layers can be useful for faster prints when the
+              geometry and nozzle configuration support them.
+            </p>
+
+            <h3>Wall loops</h3>
+
+            <p>
+              Walls form the outer shells and internal perimeter structure
+              of a printed part. More wall loops can improve the robustness
+              of many models, but the appropriate number depends on the
+              object's geometry, nozzle size, material, and expected loads.
+              Increasing wall count is not a substitute for evaluating
+              orientation and design.
+            </p>
+
+            <h3>Infill density and pattern</h3>
+
+            <p>
+              Infill adds internal structure to areas that are not solid
+              top or bottom surfaces. Higher density generally consumes
+              more material and increases printing time. A suitable
+              pattern and density depend on whether the part is decorative,
+              structural, lightweight, or intended to resist particular
+              forces.
+            </p>
+
+            <h3>Temperature and cooling</h3>
+
+            <p>
+              Nozzle temperature, bed temperature, and cooling behaviour
+              should match the filament manufacturer's recommendations
+              and your printer's capabilities. Avoid copying temperatures
+              from an unrelated material profile. Incorrect temperatures
+              can contribute to weak layer bonding, stringing, poor
+              adhesion, or other defects.
+            </p>
+
+            <h3>Print speed and retraction</h3>
+
+            <p>
+              Speed affects how quickly the printer moves through a job,
+              but higher values are not always better. The printer,
+              hotend, filament, and model geometry all influence the
+              practical limits. Retraction settings help manage filament
+              movement during travel and may need tuning if strings form
+              between separate parts.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Setting</th>
+                    <th>Primary effect</th>
+                    <th>What to consider</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Layer height</td>
+                    <td>Vertical detail and layer count</td>
+                    <td>Balance surface finish against time.</td>
+                  </tr>
+                  <tr>
+                    <td>Wall loops</td>
+                    <td>Outer shell structure</td>
+                    <td>Consider durability and wall thickness.</td>
+                  </tr>
+                  <tr>
+                    <td>Infill</td>
+                    <td>Internal structure</td>
+                    <td>Match the design and expected load.</td>
+                  </tr>
+                  <tr>
+                    <td>Temperature</td>
+                    <td>Material flow and bonding</td>
+                    <td>Follow the filament and printer guidance.</td>
+                  </tr>
+                  <tr>
+                    <td>Speed</td>
+                    <td>Movement and extrusion rate</td>
+                    <td>Respect the limits of the machine and material.</td>
+                  </tr>
+                  <tr>
+                    <td>Supports</td>
+                    <td>Temporary structures beneath overhangs</td>
+                    <td>Use them where geometry needs additional support.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              If you want to explore the software's controls in more
+              detail, this <a href="https://marios-46.github.io/learn-orca-slicer/" target="_blank" rel="noopener noreferrer">learn Orca Slicer</a>
+              resource provides another point of reference while you
+              become familiar with the workflow.
+            </p>
+
+            <p>
+              For a first print, avoid changing many settings at once.
+              If the result has a defect, changing one relevant parameter
+              at a time makes it easier to identify which adjustment
+              helped. Keep a note of successful settings so you can
+              reproduce them in future projects.
+            </p>
+          </section>
+
+          <section class="article-section" id="supports">
+            <span class="section-number">07</span>
+            <h2>Understand Supports and Build-Plate Adhesion</h2>
+
+            <p>
+              Some models contain overhangs, bridges, or narrow features
+              that are difficult to print without additional support.
+              Support structures temporarily hold up parts of the model
+              while the printer builds the surrounding geometry. The
+              slicer can generate supports according to the selected
+              settings and available support options.
+            </p>
+
+            <p>
+              Supports are not necessary for every model. Unneeded
+              structures consume material and may leave marks on the
+              finished surface. On the other hand, omitting support from
+              a difficult overhang can lead to drooping material or
+              incomplete features. Inspect the geometry and preview
+              before deciding.
+            </p>
+
+            <h3>Choose support options carefully</h3>
+
+            <ul>
+              <li>Check which overhangs actually need support.</li>
+              <li>Consider whether supports should be built from the plate only or placed more broadly, where the available options permit.</li>
+              <li>Review the contact between support material and the model.</li>
+              <li>Think about how the supports will be removed after printing.</li>
+              <li>Check whether supports could damage visible or delicate features.</li>
+            </ul>
+
+            <h3>Review the first-layer contact area</h3>
+
+            <p>
+              The first layer is important because the remaining print
+              depends on a stable foundation. A small contact area,
+              unsuitable plate preparation, incorrect first-layer
+              settings, or an unevenly positioned model can contribute
+              to adhesion problems.
+            </p>
+
+            <p>
+              A brim may help some models with a limited footprint, while
+              a raft may be appropriate in particular situations. These
+              options are not universal fixes. Start with the printer
+              manufacturer's guidance and make sure the build plate,
+              material, and first-layer settings are suitable.
+            </p>
+          </section>
+
+          <section class="article-section" id="slice">
+            <span class="section-number">08</span>
+            <h2>Slice the Model and Inspect the Preview</h2>
+
+            <p>
+              After selecting the model and configuring the required
+              settings, use the Slice button or its equivalent in your
+              version of Orca Slicer. The software calculates the
+              toolpaths and displays information about the resulting
+              print. Larger or more complex projects may take longer
+              to process.
+            </p>
+
+            <p>
+              Do not treat a completed slicing operation as proof that
+              the model will print successfully. The preview is an
+              important quality-control stage because it lets you
+              inspect what the printer is expected to do before you
+              export the file.
+            </p>
+
+            <h3>Inspect the layer view</h3>
+
+            <p>
+              Switch to the Preview workspace and examine the model
+              layer by layer. Use the available layer controls to move
+              through the build from the first layer to the top. Look
+              for missing sections, unexpected gaps, thin walls,
+              unsupported features, and unusual movements.
+            </p>
+
+            <h3>Understand the toolpath colours</h3>
+
+            <p>
+              Depending on the selected preview mode, different colours
+              may represent walls, infill, travel moves, supports, or
+              other toolpath categories. Consult the legend shown in
+              your application rather than assuming the same colours
+              always represent the same feature in every mode.
+            </p>
+
+            <h3>Check print estimates</h3>
+
+            <p>
+              Review the estimated duration and filament consumption.
+              These figures are useful for planning, comparing settings,
+              and spotting unexpected changes. Actual print duration
+              can differ because of machine behaviour, acceleration,
+              heating, material changes, and other factors.
+            </p>
+
+            <div class="callout info-callout">
+              <strong>Preview before export</strong>
+              Inspect the first few layers, the middle of the model,
+              the top surfaces, and any complex overhangs. A quick
+              visual review can reveal issues that are easier to fix
+              before printing than after a failed job.
+            </div>
+
+            <h3>When the preview looks wrong</h3>
+
+            <p>
+              If the model disappears, shows unexpected gaps, or
+              contains unusual toolpaths, return to the Prepare workspace
+              and check the model's geometry, position, scale, and
+              relevant settings. Slice again after making a change,
+              then inspect the new preview. This repeatable process
+              is safer than exporting a result you do not understand.
+            </p>
+          </section>
+
+          <section class="article-section" id="export">
+            <span class="section-number">09</span>
+            <h2>Export the Sliced Model</h2>
+
+            <p>
+              Once the preview looks correct, export the sliced result
+              using a format supported by your printer and workflow.
+              For many FDM printers, this means exporting G-code.
+              Some printers or software integrations use different
+              output variants, so confirm the requirements for your
+              particular machine.
+            </p>
+
+            <h3>Export G-code</h3>
+
+            <ol>
+              <li>Finish reviewing the sliced preview.</li>
+              <li>Choose the available export or save-sliced-file option.</li>
+              <li>Select the output format required by your printer.</li>
+              <li>Choose a clear file name and a folder you can find again.</li>
+              <li>Wait for the export to finish before removing the file or closing the application.</li>
+              <li>Transfer the file using a supported method, such as removable storage or a compatible network workflow.</li>
+            </ol>
+
+            <p>
+              G-code contains machine instructions, but it does not
+              necessarily preserve all the printer, filament, and
+              process information from the original project. A project
+              file such as 3MF can be more useful when you want to save
+              your model arrangement and editable settings for later.
+            </p>
+
+            <h3>Save the project for future edits</h3>
+
+            <p>
+              Consider saving the project separately from the final
+              sliced output. This makes it easier to return to the model,
+              change settings, compare versions, or repeat the print
+              without rebuilding the entire setup from scratch.
+            </p>
+
+            <div class="mini-banner">
+              <h3>Keep your workflow organised</h3>
+              <p>
+                Use descriptive file names that identify the model and
+                revision. If you test several settings, save distinct
+                project versions so you can tell which configuration
+                produced each result.
+              </p>
+            </div>
+
+            <p>
+              Before starting the printer, verify that the exported file
+              matches the intended machine and material. A file generated
+              for the wrong printer profile can contain unsuitable
+              dimensions or machine-specific commands. Never assume
+              every G-code file is interchangeable between printers.
+            </p>
+          </section>
+
+          <section class="article-section" id="troubleshoot">
+            <span class="section-number">10</span>
+            <h2>Troubleshooting Common Import and Slicing Problems</h2>
+
+            <p>
+              Most early slicing problems can be investigated by checking
+              the source file, printer profile, model dimensions, and
+              preview. Work through one possible cause at a time rather
+              than changing every setting simultaneously.
+            </p>
+
+            <h3>The model will not import</h3>
+
+            <p>
+              Confirm that the file is complete and uses a supported
+              format. If it came from an archive, extract the archive
+              where necessary and try opening the actual model file.
+              A corrupted download or an unsupported format may prevent
+              a successful import.
+            </p>
+
+            <h3>The model is too large or too small</h3>
+
+            <p>
+              Inspect the model dimensions and verify the units used by
+              the design application. If the dimensions are inconsistent
+              with the intended object, correct the scale carefully
+              before slicing. Do not rely on appearance alone, because
+              zoom level can make a very small object look large.
+            </p>
+
+            <h3>The model is outside the build area</h3>
+
+            <p>
+              Check the selected printer profile and use the move or
+              placement controls to bring the object within the usable
+              build volume. If the model is genuinely too large, you
+              may need to redesign it, scale it where appropriate, or
+              split it into smaller printable sections.
+            </p>
+
+            <h3>The model has holes or unexpected gaps</h3>
+
+            <p>
+              These symptoms can indicate a problem with the source mesh,
+              overlapping geometry, or a model that was not designed
+              as a closed printable solid. Try obtaining a corrected
+              version of the model or repairing it in suitable
+              mesh-editing software. Re-slice and inspect the preview
+              after making repairs.
+            </p>
+
+            <h3>Slicing is slow or the application becomes unresponsive</h3>
+
+            <p>
+              High-detail models and large assemblies can require
+              substantial processing resources. Close unnecessary
+              applications, verify that the model is not excessively
+              detailed for the intended print, and consider simplifying
+              the geometry if its fine detail is not needed. Save
+              project changes before attempting major modifications.
+            </p>
+
+            <h3>The preview looks correct, but the print fails</h3>
+
+            <p>
+              A visually correct preview cannot confirm every aspect
+              of physical printing. Check first-layer adhesion, material
+              condition, temperatures, nozzle condition, bed levelling
+              or calibration, and the machine's maintenance requirements.
+              Also verify that the exported file was generated for the
+              correct printer and that the physical material matches
+              the selected profile.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Problem</th>
+                    <th>First check</th>
+                    <th>Possible next step</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Import fails</td>
+                    <td>File format and file integrity</td>
+                    <td>Try a valid export or another supported format.</td>
+                  </tr>
+                  <tr>
+                    <td>Wrong dimensions</td>
+                    <td>Units and scale</td>
+                    <td>Correct the dimensions before slicing again.</td>
+                  </tr>
+                  <tr>
+                    <td>Object off the plate</td>
+                    <td>Position and printer profile</td>
+                    <td>Reposition the object or check the selected machine.</td>
+                  </tr>
+                  <tr>
+                    <td>Unexpected toolpaths</td>
+                    <td>Geometry, supports, and preview mode</td>
+                    <td>Inspect the model and review relevant settings.</td>
+                  </tr>
+                  <tr>
+                    <td>Poor first layer</td>
+                    <td>Plate condition and first-layer setup</td>
+                    <td>Follow the printer's calibration and material guidance.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="article-section" id="checklist">
+            <span class="section-number">11</span>
+            <h2>Pre-Print Checklist</h2>
+
+            <p>
+              Before sending a sliced file to the printer, take a moment
+              to verify the important details. This checklist is useful
+              for beginners and experienced users who want a consistent
+              workflow.
+            </p>
+
+            <ul class="checklist">
+              <li>The selected printer profile matches the actual printer.</li>
+              <li>The nozzle size and filament profile are appropriate.</li>
+              <li>The model dimensions match the intended object.</li>
+              <li>The entire model fits within the usable build area.</li>
+              <li>The orientation provides suitable stability and surface quality.</li>
+              <li>Supports are enabled where required and reviewed in the preview.</li>
+              <li>Layer height, walls, infill, temperature, and speed settings are reasonable for the material and machine.</li>
+              <li>The first layers and complex areas look correct in the preview.</li>
+              <li>The estimated material usage and print duration are plausible.</li>
+              <li>The exported file format is supported by the intended printer.</li>
+              <li>The project is saved if you may need to edit or repeat the print later.</li>
+            </ul>
+
+            <p>
+              These checks do not guarantee a perfect print, but they
+              reduce avoidable mistakes. Good results usually come from
+              combining appropriate slicer settings with a well-prepared
+              model, suitable material, and a correctly maintained printer.
+            </p>
+          </section>
+
+          <section class="article-section" id="faq">
+            <span class="section-number">12</span>
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+              <h3>1. How do I import a model into Orca Slicer?</h3>
+              <p>
+                Use the import option in the File menu, an available
+                toolbar control, or drag and drop if supported by your
+                version. Select a compatible model file and check its
+                dimensions and position after it appears on the build plate.
+              </p>
+            </div>
+
+            <div class="faq-item">
+              <h3>2. Which file format is best for 3D printing?</h3>
+              <p>
+                STL is a common choice for basic printable geometry.
+                3MF can preserve additional model and project information,
+                making it useful for saving work. The best option depends
+                on the information in the file and your intended workflow.
+              </p>
+            </div>
+
+            <div class="faq-item">
+              <h3>3. What does slicing a 3D model mean?</h3>
+              <p>
+                Slicing converts the model into horizontal layers and
+                calculates the toolpaths and machine instructions needed
+                to print those layers. The resulting output is commonly
+                G-code for compatible FDM printers.
+              </p>
+            </div>
+
+            <div class="faq-item">
+              <h3>4. Why should I check the preview before exporting?</h3>
+              <p>
+                The preview helps you inspect layers, walls, infill,
+                supports, and travel movements. It can reveal missing
+                sections or unexpected toolpaths before you spend time
+                and material on a physical print.
+              </p>
+            </div>
+
+            <div class="faq-item">
+              <h3>5. Do I need supports for every model?</h3>
+              <p>
+                No. Supports are useful when parts of a model cannot be
+                printed reliably without temporary structures. The need
+                for supports depends on the geometry, orientation,
+                printer capabilities, and selected settings.
+              </p>
+            </div>
+
+            <div class="faq-item">
+              <h3>6. Can I use the same G-code on different printers?</h3>
+              <p>
+                You should not assume that you can. G-code can contain
+                machine-specific instructions and settings. Generate
+                output using the appropriate printer profile and follow
+                the requirements of the intended machine.
+              </p>
+            </div>
+
+            <div class="faq-item">
+              <h3>7. Should I save the project after slicing?</h3>
+              <p>
+                Saving the project is useful if you want to retain the
+                model arrangement and editable settings. Keep the project
+                file separate from the final printer output when your
+                workflow requires both.
+              </p>
+            </div>
+
+            <div class="faq-item">
+              <h3>8. What should I do if the imported model looks damaged?</h3>
+              <p>
+                Check the source file, dimensions, and mesh geometry.
+                If the model contains holes or invalid surfaces, obtain
+                a corrected version or repair it with appropriate
+                modelling tools before slicing again.
+              </p>
+            </div>
+
+            <div class="faq-item">
+              <h3>9. Can I slice a model without immediately printing it?</h3>
+              <p>
+                Yes. You can prepare a model, adjust settings, slice it,
+                and inspect the preview before sending anything to a
+                physical printer. This is useful for learning the
+                workflow and reviewing estimates.
+              </p>
+            </div>
+
+            <div class="faq-item">
+              <h3>10. Why does the estimated print time differ from the actual time?</h3>
+              <p>
+                Estimates are calculated from the slicing configuration
+                and expected machine movements. Actual time can vary
+                because of acceleration, heating, pauses, material
+                changes, printer behaviour, and other machine-specific
+                factors.
+              </p>
+            </div>
+          </section>
+
+          <section class="closing-panel">
+            <h2>Final Thoughts</h2>
+
+            <p>
+              Importing and slicing a 3D model in Orca Slicer becomes
+              straightforward once you understand the sequence: choose
+              the right file, verify your printer profile, position the
+              object, configure the main settings, generate the slice,
+              and inspect the preview before exporting.
+            </p>
+
+            <p>
+              Start with a model that has simple geometry and a reliable
+              printer preset. Learn how layer height, walls, infill,
+              supports, and orientation influence the result before
+              moving on to more advanced adjustments. When a problem
+              appears, change one relevant setting at a time and review
+              the new preview.
+            </p>
+
+            <p>
+              A consistent preparation process makes 3D printing easier
+              to troubleshoot and helps you understand why a particular
+              model succeeds or fails. With practice, you can develop
+              a repeatable workflow for decorative objects, prototypes,
+              replacement parts, and other projects suited to your printer.
+            </p>
+          </section>
+
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-shell footer-inner">
+      <p class="footer-brand">PRINTLAB / LEARNING HUB</p>
+      <p>Practical information for model preparation and 3D printing.</p>
+      <p>Educational content. Always follow your printer and filament manufacturer's instructions.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
